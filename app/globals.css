@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-accent-1: var(--accent-1);
+  --color-accent-2: var(--accent-2);
+  --color-accent-red: var(--accent-red);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border-color);
+}
+
+:root {
+  /* PRO MAX LIGHT THEME (Default) */
+  --bg-primary: #F8FAFC; /* Slate 50 */
+  --bg-card: #FFFFFF;
+  --accent-1: #3B82F6; /* Blue 500 */
+  --accent-2: #10B981; /* Emerald 500 (YES/BUY) */
+  --accent-red: #EF4444; /* Red 500 (NO/SELL) */
+  --text-primary: #0F172A; /* Slate 900 */
+  --text-secondary: #64748B; /* Slate 500 */
+  --border-color: #E2E8F0; /* Slate 200 */
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0B0E11;
+  --bg-card: #1E2329;
+  --accent-1: #F0B90B;
+  --accent-2: #00FFA3;
+  --accent-red: #FF5252;
+  --text-primary: #FFFFFF;
+  --text-secondary: #848E9C;
+  --border-color: rgba(255, 255, 255, 0.05);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden; /* For TikTok style scroll */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

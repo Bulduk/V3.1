@@ -1,0 +1,5 @@
+{
+  "name": "IATF - Impact-Adaptive Trading Framework",
+  "description": "A TikTok-style swipe-to-impact trading platform with a PULSE commit mechanic.",
+  "requestFramePermissions": []
+}

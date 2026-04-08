@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  externalWallet String?  @unique // e.g., MetaMask address
+  nonce         String?   // For SIWE (Sign-In with Ethereum)
+  
+  custodialWallet CustodialWallet?
+  balance         Balance?
+  transactions    LedgerTransaction[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CustodialWallet {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  address            String   @unique
+  encryptedPrivateKey String  // Encrypted via AWS KMS / GCP Secret Manager
+  
+  user               User     @relation(fields: [userId], references: [id])
+  createdAt          DateTime @default(now())
+}
+
+model Balance {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  available   Float    @default(0) // Off-chain USDC balance
+  locked      Float    @default(0) // In active trades/withdrawals
+  
+  user        User     @relation(fields: [userId], references: [id])
+  updatedAt   DateTime @updatedAt
+}
+
+model LedgerTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  type        TxType
+  amount      Float
+  referenceId String?  // Market ID, On-chain Tx Hash, etc.
+  status      TxStatus @default(COMPLETED)
+  
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([userId, type])
+}
+
+enum TxType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE_BUY
+  TRADE_SELL
+  MARKET_RESOLUTION_PAYOUT
+}
+
+enum TxStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Market {
+  id               String             @id @default(uuid())
+  question         String
+  category         String             // TIKTOK, TV, POLITICS
+  resolutionSource String             // URL or API Endpoint
+  endTime          DateTime
+  status           MarketStatus       @default(OPEN)
+  
+  // AMM Pools
+  yesPool          Float              @default(0)
+  noPool           Float              @default(0)
+  
+  snapshots        DataSnapshot[]
+  validations      ValidationResult[]
+  decisions        OracleDecision[]
+  
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+enum MarketStatus {
+  OPEN
+  RESOLVING
+  RESOLVED
+  DISPUTED
+}
+
+model DataSnapshot {
+  id          String   @id @default(uuid())
+  marketId    String
+  source      String   // e.g., "TIKTOK_API", "SCRAPER_NODE_1"
+  trustLevel  TrustLevel
+  value       Float    // e.g., 1250000 (views)
+  rawPayload  Json     // Full API response for auditing
+  
+  createdAt   DateTime @default(now())
+  market      Market   @relation(fields: [marketId], references: [id])
+
+  @@index([marketId, createdAt])
+}
+
+enum TrustLevel {
+  HIGH
+  LOW
+}
+
+model ValidationResult {
+  id              String   @id @default(uuid())
+  marketId        String
+  computedValue   Float
+  confidence      Float    // 0.0 to 1.0
+  anomalyDetected Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  market          Market   @relation(fields: [marketId], references: [id])
+}
+
+model OracleDecision {
+  id          String         @id @default(uuid())
+  marketId    String
+  outcome     Boolean        // true = YES, false = NO
+  txHash      String?        // Polygon Transaction Hash
+  status      DecisionStatus @default(PENDING)
+  
+  createdAt   DateTime       @default(now())
+  market      Market         @relation(fields: [marketId], references: [id])
+}
+
+enum DecisionStatus {
+  PENDING
+  EXECUTED
+  FAILED
+}
